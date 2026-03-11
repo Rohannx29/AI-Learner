@@ -13,3 +13,4 @@ python-dotenv
 sentence-transformers
 faiss-cpu
 requests
+ollama

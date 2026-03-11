@@ -1,13 +1,19 @@
 from fastapi import APIRouter
+from pydantic import BaseModel
+from app.ai_engine.llm_engine import generate_explanation
 
 router = APIRouter()
 
+class TopicRequest(BaseModel):
+    topic: str
+
+
 @router.post("/explain")
-def explain_topic(topic: str):
-    
-    explanation = f"This is a basic explanation placeholder for {topic}. AI generation will be added later."
-    
+def explain_topic(request: TopicRequest):
+
+    explanation = generate_explanation(request.topic)
+
     return {
-        "topic": topic,
+        "topic": request.topic,
         "explanation": explanation
     }

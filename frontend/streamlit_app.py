@@ -7,12 +7,21 @@ topic = st.text_input("Enter topic")
 
 if st.button("Generate Explanation"):
 
-    response = requests.post(
-        "http://127.0.0.1:8000/explain",
-        params={"topic": topic}
-    )
+    if topic.strip() == "":
+        st.warning("Please enter a topic.")
+    else:
+        response = requests.post(
+            "http://127.0.0.1:8000/explain",
+            json={"topic": topic}
+        )
 
-    data = response.json()
+        if response.status_code == 200:
 
-    st.subheader("Explanation")
-    st.write(data["explanation"])
+            data = response.json()
+
+            st.subheader("Explanation")
+            st.write(data["explanation"])
+
+        else:
+            st.error("Backend Error")
+            st.write(response.text)
