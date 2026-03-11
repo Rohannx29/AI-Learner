@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+streamlit
+openai
+langchain
+transformers
+tiktoken
+numpy
+pandas
+sqlalchemy
+google-api-python-client
+python-dotenv
+sentence-transformers
+faiss-cpu
