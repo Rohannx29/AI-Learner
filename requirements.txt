@@ -21,3 +21,4 @@ pytesseract
 pillow
 pdf2image
 opencv-python
+python-multipart

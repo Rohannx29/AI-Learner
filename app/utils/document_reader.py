@@ -5,19 +5,25 @@ from docx import Document
 from pptx import Presentation
 from PIL import Image
 
+# IMPORTANT: change path if your installation differs
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
-def read_pdf(file_path):
+POPPLER_PATH = r"C:\poppler\Library\bin"
 
+
+def read_pdf(file_path):
     text = ""
 
+    # Try reading normal text PDF
     with pdfplumber.open(file_path) as pdf:
         for page in pdf.pages:
-            text += page.extract_text() or ""
+            extracted = page.extract_text()
+            if extracted:
+                text += extracted + "\n"
 
-    # If text is empty → likely scanned PDF
+    # If no text found → probably scanned PDF
     if text.strip() == "":
-        images = convert_from_path(file_path)
+        images = convert_from_path(file_path, poppler_path=POPPLER_PATH)
 
         for img in images:
             text += pytesseract.image_to_string(img)
@@ -26,7 +32,6 @@ def read_pdf(file_path):
 
 
 def read_docx(file_path):
-
     doc = Document(file_path)
 
     text = ""
@@ -38,7 +43,6 @@ def read_docx(file_path):
 
 
 def read_pptx(file_path):
-
     prs = Presentation(file_path)
 
     text = ""
@@ -52,13 +56,10 @@ def read_pptx(file_path):
 
 
 def read_txt(file_path):
-
     with open(file_path, "r", encoding="utf-8") as f:
         return f.read()
 
 
 def read_image(file_path):
-
     img = Image.open(file_path)
-
     return pytesseract.image_to_string(img)
