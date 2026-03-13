@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import time
 
 # ---------------------------------
 # Page Configuration
@@ -47,11 +48,29 @@ if st.sidebar.button("Clear Chat"):
     st.session_state.messages = []
 
 # ---------------------------------
-# Chat History Initialization
+# Chat History
 # ---------------------------------
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
+# ---------------------------------
+# Streaming Effect Function
+# ---------------------------------
+
+def stream_response(text, container):
+
+    words = text.split(" ")
+    streamed_text = ""
+
+    for word in words:
+
+        streamed_text += word + " "
+
+        container.markdown(streamed_text)
+
+        time.sleep(0.02)
+
 
 # ---------------------------------
 # AI Tutor Page
@@ -62,7 +81,6 @@ if menu == "AI Tutor":
     st.title("AI Tutor")
     st.caption("AI-powered learning assistant with OCR, RAG, and mathematical reasoning.")
 
-    # Display previous chat messages
     for msg in st.session_state.messages:
 
         if msg["role"] == "user":
@@ -73,7 +91,6 @@ if menu == "AI Tutor":
             with st.chat_message("assistant", avatar="🤖"):
                 st.markdown(msg["content"])
 
-    # Chat input
     user_input = st.chat_input("Ask anything...")
 
     if user_input:
@@ -88,24 +105,24 @@ if menu == "AI Tutor":
 
         with st.chat_message("assistant", avatar="🤖"):
 
-            with st.spinner("Thinking..."):
+            placeholder = st.empty()
 
-                try:
+            try:
 
-                    response = requests.post(
-                        f"{BACKEND}/ask-notes",
-                        json={"question": user_input}
-                    )
+                response = requests.post(
+                    f"{BACKEND}/ask-notes",
+                    json={"question": user_input}
+                )
 
-                    data = response.json()
+                data = response.json()
 
-                    ai_reply = data.get("answer", "No response generated.")
+                ai_reply = data.get("answer", "No response generated.")
 
-                except Exception as e:
+            except Exception as e:
 
-                    ai_reply = f"Backend error: {str(e)}"
+                ai_reply = f"Backend error: {str(e)}"
 
-                st.markdown(ai_reply)
+            stream_response(ai_reply, placeholder)
 
         st.session_state.messages.append({
             "role": "assistant",
