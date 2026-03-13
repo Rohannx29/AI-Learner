@@ -6,23 +6,28 @@ MATH_KEYWORDS = [
     "numerical",
     "derive",
     "prove",
-    "find",
     "evaluate",
     "integrate",
-    "differentiate"
+    "differentiate",
+    "find",
+    "distance",
+    "velocity",
+    "acceleration"
 ]
 
 
 def is_math_question(question: str):
 
-    question = question.lower()
+    q = question.lower()
 
     for word in MATH_KEYWORDS:
-        if word in question:
+        if word in q:
             return True
 
-    # detect equations
-    if re.search(r"[=+\-*/^]", question):
+    if re.search(r"[0-9]+\s*[+\-*/=]", q):
+        return True
+
+    if re.search(r"\d+\s*(m|kg|s|m/s|m/s²)", q):
         return True
 
     return False
