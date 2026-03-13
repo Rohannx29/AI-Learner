@@ -1,27 +1,19 @@
-from pix2text import Pix2Text
+from pix2tex.cli import LatexOCR
+from PIL import Image
 
-p2t = Pix2Text()
+
+model = LatexOCR()
 
 
 def extract_math_from_image(image_path):
 
     try:
 
-        result = p2t.recognize(image_path)
+        img = Image.open(image_path)
 
-        text_blocks = []
+        latex = model(img)
 
-        for block in result:
-
-            # handle dictionary format
-            if isinstance(block, dict) and "text" in block:
-                text_blocks.append(block["text"])
-
-            # handle plain string format
-            elif isinstance(block, str):
-                text_blocks.append(block)
-
-        return "\n".join(text_blocks)
+        return f"\nDetected Equation (LaTeX):\n{latex}\n"
 
     except Exception:
 
