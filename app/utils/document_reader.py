@@ -6,6 +6,7 @@ import pdfplumber
 from pdf2image import convert_from_path
 from docx import Document
 from pptx import Presentation
+from app.utils.math_ocr import extract_math_from_image
 
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 POPPLER_PATH = r"C:\poppler\Library\bin"
@@ -43,13 +44,15 @@ def preprocess_image(image):
 
 def read_image(file_path):
 
-    image = Image.open(file_path)
+    # normal OCR
+    image_text = pytesseract.image_to_string(file_path)
 
-    processed = preprocess_image(image)
+    # math OCR
+    math_text = extract_math_from_image(file_path)
 
-    text = pytesseract.image_to_string(processed)
+    combined = image_text + "\n\nDetected Equations:\n" + math_text
 
-    return text
+    return combined
 
 
 # ---------------------------
@@ -81,7 +84,12 @@ def read_pdf(file_path):
 
             processed = preprocess_image(img)
 
-            text += pytesseract.image_to_string(processed)
+            ocr_text = pytesseract.image_to_string(processed)
+            math_text = extract_math_from_image(img)
+
+            text += ocr_text
+            text += "\nDetected Equations:\n"
+            text += math_text
 
     return text
 

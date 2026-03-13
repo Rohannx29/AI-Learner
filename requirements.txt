@@ -22,3 +22,5 @@ pillow
 pdf2image
 opencv-python
 python-multipart
+sympy
+pix2text
