@@ -1,6 +1,10 @@
 import streamlit as st
 import requests
 
+# ---------------------------------
+# Page Configuration
+# ---------------------------------
+
 st.set_page_config(
     page_title="AI Learner",
     page_icon="🧠",
@@ -9,15 +13,32 @@ st.set_page_config(
 
 BACKEND = "http://127.0.0.1:8000"
 
-# -----------------------------
-# Sidebar Navigation
-# -----------------------------
+# ---------------------------------
+# Load Custom CSS
+# ---------------------------------
 
-st.sidebar.title("AI Learner")
+def load_css():
+    with open("frontend/styles/custom.css") as f:
+        st.markdown(
+            f"<style>{f.read()}</style>",
+            unsafe_allow_html=True
+        )
+
+load_css()
+
+# ---------------------------------
+# Sidebar
+# ---------------------------------
+
+st.sidebar.title("🧠 AI Learner")
 
 menu = st.sidebar.radio(
     "Navigation",
-    ["AI Tutor", "Upload Notes", "Learning Roadmap"]
+    [
+        "AI Tutor",
+        "Upload Notes",
+        "Learning Roadmap"
+    ]
 )
 
 st.sidebar.markdown("---")
@@ -25,27 +46,31 @@ st.sidebar.markdown("---")
 if st.sidebar.button("Clear Chat"):
     st.session_state.messages = []
 
-# Initialize chat history
+# ---------------------------------
+# Chat History Initialization
+# ---------------------------------
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# -----------------------------
+# ---------------------------------
 # AI Tutor Page
-# -----------------------------
+# ---------------------------------
 
 if menu == "AI Tutor":
 
     st.title("AI Tutor")
+    st.caption("AI-powered learning assistant with OCR, RAG, and mathematical reasoning.")
 
-    # Display chat messages
+    # Display previous chat messages
     for msg in st.session_state.messages:
 
         if msg["role"] == "user":
-            with st.chat_message("user"):
+            with st.chat_message("user", avatar="🧑"):
                 st.markdown(msg["content"])
 
         else:
-            with st.chat_message("assistant"):
+            with st.chat_message("assistant", avatar="🤖"):
                 st.markdown(msg["content"])
 
     # Chat input
@@ -58,10 +83,10 @@ if menu == "AI Tutor":
             "content": user_input
         })
 
-        with st.chat_message("user"):
+        with st.chat_message("user", avatar="🧑"):
             st.markdown(user_input)
 
-        with st.chat_message("assistant"):
+        with st.chat_message("assistant", avatar="🤖"):
 
             with st.spinner("Thinking..."):
 
@@ -87,15 +112,17 @@ if menu == "AI Tutor":
             "content": ai_reply
         })
 
-# -----------------------------
+
+# ---------------------------------
 # Upload Notes Page
-# -----------------------------
+# ---------------------------------
 
 elif menu == "Upload Notes":
 
     st.title("Upload Notes")
+    st.caption("Upload documents so the AI can answer using your notes.")
 
-    st.write("Upload documents so the AI can answer using your notes.")
+    st.info("Supported formats: PDF, DOCX, PPTX, TXT, PNG, JPG")
 
     uploaded_file = st.file_uploader(
         "Upload notes",
@@ -121,7 +148,7 @@ elif menu == "Upload Notes":
 
                     st.write("Chunks created:", data["chunks_created"])
 
-                    st.subheader("Preview")
+                    st.subheader("Preview of Extracted Text")
 
                     st.write(data["preview"])
 
@@ -133,13 +160,15 @@ elif menu == "Upload Notes":
 
                 st.error(f"Upload failed: {str(e)}")
 
-# -----------------------------
+
+# ---------------------------------
 # Learning Roadmap Page
-# -----------------------------
+# ---------------------------------
 
 elif menu == "Learning Roadmap":
 
     st.title("Learning Roadmap Generator")
+    st.caption("Generate a structured learning roadmap using AI.")
 
     goal = st.text_input("What do you want to learn?")
     duration = st.text_input("Duration (example: 30 days, 8 weeks)")
