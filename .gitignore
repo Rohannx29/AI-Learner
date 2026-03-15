@@ -1,17 +1,73 @@
-# Uploaded files
-data/uploads/
+# =========================
+# Python
+# =========================
 
-# Python cache
 __pycache__/
 *.pyc
-.env
+*.pyo
+*.pyd
 
-# Virtual environment
+
+# =========================
+# Virtual Environment
+# =========================
+
 venv/
+env/
+.venv/
 
-# Streamlit cache
+
+# =========================
+# Uploaded Files
+# =========================
+
+data/uploads/
+
+
+# =========================
+# Model Downloads & AI Caches
+# =========================
+
+.cache/
+.cache/*
+.cache/huggingface/
+.cache/torch/
+
+huggingface/
+hf_cache/
+
+cnstd/
+pix2text/
+
+models/
+checkpoints/
+
+
+# =========================
+# Streamlit
+# =========================
+
 .streamlit/
 
-# OS files
+
+# =========================
+# OS Files
+# =========================
+
 .DS_Store
 Thumbs.db
+
+
+# =========================
+# Logs
+# =========================
+
+*.log
+
+
+# =========================
+# Temporary Files
+# =========================
+
+temp/
+tmp/
