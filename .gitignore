@@ -1,7 +1,16 @@
+# Uploaded files
+data/uploads/
+
+# Python cache
 __pycache__/
-.env
-venv/
 *.pyc
-*.pyo
-*.pyd
+
+# Virtual environment
+venv/
+
+# Streamlit cache
+.streamlit/
+
+# OS files
 .DS_Store
+Thumbs.db
