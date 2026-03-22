@@ -6,12 +6,9 @@ from app.ai_engine.math_prompts import NUMERICAL_PROMPT
 from app.ai_engine.math_engine import try_sympy_solver
 
 
-def answer_from_notes(question):
+def answer_from_notes(user_id, question):
 
-    # -----------------------------------
-    # First try SymPy solver
-    # -----------------------------------
-
+    # 🔥 Try SymPy first
     if is_math_question(question):
 
         sympy_result = try_sympy_solver(question)
@@ -19,24 +16,14 @@ def answer_from_notes(question):
         if sympy_result:
             return sympy_result
 
-    # -----------------------------------
-    # Hybrid RAG retrieval
-    # -----------------------------------
-
+    # 🔥 User-specific search
     try:
-
-        relevant_chunks = hybrid_search(question)
-
+        relevant_chunks = hybrid_search(user_id, question)
         context = "\n\n".join(relevant_chunks)
-
     except:
-
         context = ""
 
-    # -----------------------------------
-    # LLM Prompt
-    # -----------------------------------
-
+    # Prompt
     if is_math_question(question):
 
         prompt = NUMERICAL_PROMPT.format(question=question)

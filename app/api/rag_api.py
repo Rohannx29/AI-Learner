@@ -12,9 +12,12 @@ class QuestionRequest(BaseModel):
 
 
 @router.post("/ask-notes")
-def ask_notes(request: QuestionRequest, user_id: int = Depends(get_current_user)):
+def ask_notes(
+    request: QuestionRequest,
+    user_id: int = Depends(get_current_user)
+):
 
-    answer = answer_from_notes(request.question)
+    answer = answer_from_notes(user_id, request.question)
 
     return {
         "user_id": user_id,

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, Depends
+import os
 
 from app.utils.document_reader import (
     read_pdf,
@@ -11,13 +12,9 @@ from app.utils.document_reader import (
 from app.ai_engine.vector_store import build_index
 from app.auth.dependencies import get_current_user
 
-import os
-
 router = APIRouter()
 
 UPLOAD_DIR = "data/uploads"
-
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 @router.post("/upload-notes")
@@ -26,7 +23,11 @@ async def upload_notes(
     user_id: int = Depends(get_current_user)
 ):
 
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
+    # 🔥 Create user-specific folder
+    user_dir = os.path.join(UPLOAD_DIR, f"user_{user_id}")
+    os.makedirs(user_dir, exist_ok=True)
+
+    file_path = os.path.join(user_dir, file.filename)
 
     with open(file_path, "wb") as f:
         f.write(await file.read())
@@ -45,7 +46,8 @@ async def upload_notes(
 
     chunks = [text[i:i+500] for i in range(0, len(text), 500)]
 
-    build_index(chunks)
+    # 🔥 Build index PER USER
+    build_index(user_id, chunks)
 
     return {
         "message": "Notes uploaded successfully",
