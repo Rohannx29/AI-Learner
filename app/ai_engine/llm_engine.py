@@ -1,8 +1,8 @@
 import requests
 
-def generate_response(prompt):
 
-    response = requests.post(
+def generate_response(prompt):
+    res = requests.post(
         "http://localhost:11434/api/generate",
         json={
             "model": "llama3",
@@ -11,6 +11,5 @@ def generate_response(prompt):
         }
     )
 
-    data = response.json()
-
+    data = res.json()
     return data.get("response", "")

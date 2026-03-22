@@ -2,111 +2,40 @@
 
 import { useState } from "react"
 
-export default function ChatPage() {
+export default function Chat() {
 
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState("")
-  const [loading, setLoading] = useState(false)
 
-  const sendMessage = async () => {
+  const send = async () => {
 
-    if (!input.trim()) return
-
-    const userMessage = {
-      role: "user",
-      content: input
-    }
-
-    const updatedMessages = [...messages, userMessage]
-
-    setMessages(updatedMessages)
+    const updated = [...messages, { role: "user", content: input }]
+    setMessages(updated)
     setInput("")
-    setLoading(true)
 
-    try {
-
-      const res = await fetch("http://localhost:8000/ask-notes", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        },
-        body: JSON.stringify({
-          question: input,
-          history: updatedMessages   // 🔥 MEMORY ADDED
-        })
+    const res = await fetch("http://localhost:8000/ask-notes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      },
+      body: JSON.stringify({
+        question: input,
+        history: updated
       })
+    })
 
-      const data = await res.json()
+    const data = await res.json()
 
-      const aiMessage = {
-        role: "assistant",
-        content: data.answer || "No response"
-      }
-
-      setMessages(prev => [...prev, aiMessage])
-
-    } catch (err) {
-
-      console.error(err)
-
-      setMessages(prev => [
-        ...prev,
-        { role: "assistant", content: "Error getting response" }
-      ])
-
-    } finally {
-      setLoading(false)
-    }
+    setMessages([...updated, { role: "assistant", content: data.answer }])
   }
 
   return (
+    <div className="p-10">
+      {messages.map((m, i) => <div key={i}>{m.content}</div>)}
 
-    <main className="flex flex-col h-screen bg-gray-100">
-
-      {/* Chat */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
-
-        {messages.map((msg, index) => (
-
-          <div
-            key={index}
-            className={`max-w-xl p-3 rounded-lg ${
-              msg.role === "user"
-                ? "bg-black text-white ml-auto"
-                : "bg-white text-black"
-            }`}
-          >
-            {msg.content}
-          </div>
-
-        ))}
-
-        {loading && (
-          <div className="text-gray-500">AI is thinking...</div>
-        )}
-
-      </div>
-
-      {/* Input */}
-      <div className="p-4 bg-white border-t flex gap-2">
-
-        <input
-          value={input}
-          onChange={(e)=>setInput(e.target.value)}
-          placeholder="Ask anything..."
-          className="flex-1 border p-2 rounded"
-        />
-
-        <button
-          onClick={sendMessage}
-          className="bg-black text-white px-4 rounded"
-        >
-          Send
-        </button>
-
-      </div>
-
-    </main>
+      <input value={input} onChange={e=>setInput(e.target.value)} />
+      <button onClick={send}>Send</button>
+    </div>
   )
 }

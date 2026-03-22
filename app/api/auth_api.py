@@ -1,12 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-
-from app.db.database import get_db
-from app.db.models import User
-from app.auth.auth_utils import hash_password, verify_password, create_token
+from jose import jwt
+from passlib.context import CryptContext
 
 router = APIRouter()
+
+SECRET_KEY = "supersecretkey"
+ALGORITHM = "HS256"
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# simple in-memory users
+fake_db = {}
 
 
 class AuthRequest(BaseModel):
@@ -14,60 +19,32 @@ class AuthRequest(BaseModel):
     password: str
 
 
+def hash_password(password):
+    return pwd_context.hash(password[:72])
+
+
+def verify_password(password, hashed):
+    return pwd_context.verify(password[:72], hashed)
+
+
 @router.post("/signup")
-def signup(request: AuthRequest, db: Session = Depends(get_db)):
+def signup(req: AuthRequest):
+    if req.email in fake_db:
+        raise HTTPException(status_code=400, detail="User exists")
 
-    try:
+    fake_db[req.email] = hash_password(req.password)
 
-        existing = db.query(User).filter(User.email == request.email).first()
-
-        if existing:
-            raise HTTPException(
-                status_code=400,
-                detail="User already exists"
-            )
-
-        hashed_password = hash_password(request.password)
-
-        user = User(
-            email=request.email,
-            password=hashed_password
-        )
-
-        db.add(user)
-        db.commit()
-
-        return {"message": "User created successfully"}
-
-    except Exception as e:
-
-        return {
-            "error": str(e)
-        }
+    return {"message": "User created"}
 
 
 @router.post("/login")
-def login(request: AuthRequest, db: Session = Depends(get_db)):
+def login(req: AuthRequest):
+    if req.email not in fake_db:
+        raise HTTPException(status_code=400, detail="Invalid credentials")
 
-    user = db.query(User).filter(User.email == request.email).first()
+    if not verify_password(req.password, fake_db[req.email]):
+        raise HTTPException(status_code=400, detail="Invalid credentials")
 
-    if not user:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid credentials"
-        )
+    token = jwt.encode({"user_id": req.email}, SECRET_KEY, algorithm=ALGORITHM)
 
-    if not verify_password(request.password, user.password):
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid credentials"
-        )
-
-    token = create_token(
-        {"user_id": user.id}
-    )
-
-    return {
-        "access_token": token,
-        "token_type": "bearer"
-    }
+    return {"access_token": token}

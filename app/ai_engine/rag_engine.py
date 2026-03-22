@@ -2,32 +2,24 @@ from app.ai_engine.vector_db import query_chunks
 from app.ai_engine.llm_engine import generate_response
 
 
-def answer_from_notes(user_id: int, question: str):
-
-    # 🔥 Get relevant chunks
+def answer_from_notes(user_id, question):
     chunks = query_chunks(user_id, question)
 
-    context = "\n".join(chunks)
+    context = "\n\n".join(chunks[:3])  # limit context
 
     prompt = f"""
-You are an AI Tutor.
-
-Use the following notes to answer:
+Use the notes to answer:
 
 {context}
 
 Question:
 {question}
 
-Instructions:
-- Answer clearly
-- If numerical → use structured format:
-  Given:
-  Formula:
-  Solution:
-  Answer:
-
-- If concept → explain simply
+If numerical:
+Given:
+Formula:
+Solution:
+Answer:
 """
 
     return generate_response(prompt)

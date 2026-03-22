@@ -1,28 +1,14 @@
 import ollama
+from typing import List, Dict
 
-# Store conversation history
-conversation_history = []
 
-def tutor_chat(question: str):
+def tutor_chat(question: str, history: List[Dict] = []) -> str:
+    """
+    history is passed in per-request from the API layer.
+    No global state — each call is fully isolated.
+    """
+    messages = list(history)  # copy, never mutate caller's list
+    messages.append({"role": "user", "content": question})
 
-    # Add user question to history
-    conversation_history.append({
-        "role": "user",
-        "content": question
-    })
-
-    # Send full conversation to model
-    response = ollama.chat(
-        model="llama3",
-        messages=conversation_history
-    )
-
-    ai_message = response["message"]["content"]
-
-    # Save AI reply
-    conversation_history.append({
-        "role": "assistant",
-        "content": ai_message
-    })
-
-    return ai_message
+    response = ollama.chat(model="llama3", messages=messages)
+    return response["message"]["content"]
