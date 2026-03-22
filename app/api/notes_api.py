@@ -1,6 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, Depends
 from app.auth.dependencies import get_current_user
 from app.ai_engine.vector_db import store_chunks
+from app.utils.text_chunker import chunk_text
 
 import io
 from PyPDF2 import PdfReader
@@ -11,11 +12,7 @@ import pytesseract
 router = APIRouter()
 
 
-def split_text(text, chunk_size=500):
-    return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
-
-
-def extract_pdf_text(file_bytes):
+def extract_pdf_text(file_bytes: bytes) -> str:
     try:
         pdf = PdfReader(io.BytesIO(file_bytes))
         text = ""
@@ -28,7 +25,7 @@ def extract_pdf_text(file_bytes):
         return ""
 
 
-def extract_docx_text(file_bytes):
+def extract_docx_text(file_bytes: bytes) -> str:
     try:
         doc = docx.Document(io.BytesIO(file_bytes))
         return "\n".join([para.text for para in doc.paragraphs])
@@ -36,11 +33,10 @@ def extract_docx_text(file_bytes):
         return ""
 
 
-def extract_text_with_ocr(file_bytes):
+def extract_text_with_ocr(file_bytes: bytes) -> str:
     try:
         image = Image.open(io.BytesIO(file_bytes))
-        text = pytesseract.image_to_string(image)
-        return text.strip()
+        return pytesseract.image_to_string(image).strip()
     except Exception:
         return ""
 
@@ -69,9 +65,9 @@ async def upload_notes(
         if not text.strip():
             return {"error": "Could not extract text from file"}
 
-        chunks = split_text(text)
+        # Word-level chunking — preserves token boundaries for better embeddings
+        chunks = chunk_text(text)
 
-        # filename passed so each upload gets unique chunk IDs
         store_chunks(user_id, chunks, filename=file.filename)
 
         return {
