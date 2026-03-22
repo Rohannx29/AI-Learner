@@ -5,10 +5,16 @@ import { useAuth } from "@/hooks/useAuth"
 
 const FEATURES = [
   {
-    label: "AI Chat",
+    label: "Notes Chat",
     description: "Ask questions from your uploaded notes",
     route: "/chat",
     icon: "💬",
+  },
+  {
+    label: "AI Tutor",
+    description: "General tutoring — ask anything",
+    route: "/tutor",
+    icon: "🎓",
   },
   {
     label: "Upload Notes",

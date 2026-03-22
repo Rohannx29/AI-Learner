@@ -1,13 +1,15 @@
-# DELETE entire file and replace with:
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, field_validator
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.db.database import get_db
 from app.db.models import User
 from app.auth.auth_utils import hash_password, verify_password, create_token
 
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
 
 PASSWORD_MIN_LENGTH = 8
 
@@ -22,7 +24,6 @@ class AuthRequest(BaseModel):
         v = v.strip().lower()
         if not v:
             raise ValueError("Email is required")
-        # Basic structure check — @ present, domain has a dot
         parts = v.split("@")
         if len(parts) != 2 or "." not in parts[1]:
             raise ValueError("Enter a valid email address")
@@ -41,15 +42,16 @@ class AuthRequest(BaseModel):
 
 
 @router.post("/signup", status_code=201)
-def signup(request: AuthRequest, db: Session = Depends(get_db)):
-    existing = db.query(User).filter(User.email == request.email).first()
+@limiter.limit("10/minute")
+def signup(request: Request, body: AuthRequest, db: Session = Depends(get_db)):
+    existing = db.query(User).filter(User.email == body.email).first()
 
     if existing:
         raise HTTPException(status_code=409, detail="Email already registered")
 
     user = User(
-        email=request.email,
-        password=hash_password(request.password)
+        email=body.email,
+        password=hash_password(body.password)
     )
     db.add(user)
     db.commit()
@@ -58,10 +60,11 @@ def signup(request: AuthRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/login")
-def login(request: AuthRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == request.email).first()
+@limiter.limit("10/minute")
+def login(request: Request, body: AuthRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == body.email).first()
 
-    if not user or not verify_password(request.password, user.password):
+    if not user or not verify_password(body.password, user.password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     token = create_token({"user_id": user.id})

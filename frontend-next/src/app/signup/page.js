@@ -41,7 +41,6 @@ export default function SignupPage() {
   const [loading, setLoading]   = useState(false)
 
   const handleSignup = async () => {
-    // Client-side validation first — no API call if invalid
     const validationErrors = validate(email, password, confirm)
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
@@ -53,8 +52,14 @@ export default function SignupPage() {
     setLoading(true)
 
     try {
-      await authApi.signup(email.trim().toLowerCase(), password)
-      router.push("/login?registered=true")
+      const normalizedEmail = email.trim().toLowerCase()
+
+      await authApi.signup(normalizedEmail, password)
+
+      // Auto-login immediately after signup
+      const data = await authApi.login(normalizedEmail, password)
+      localStorage.setItem("token", data.access_token)
+      router.push("/dashboard")
     } catch (err) {
       setApiError(err.message || "Signup failed")
     } finally {
@@ -78,7 +83,6 @@ export default function SignupPage() {
           </p>
         )}
 
-        {/* Email */}
         <div className="mb-4">
           <input
             type="email"
@@ -89,16 +93,13 @@ export default function SignupPage() {
               setErrors((prev) => ({ ...prev, email: undefined }))
             }}
             onKeyDown={handleKeyDown}
-            className={`w-full border p-2 rounded ${
-              errors.email ? "border-red-400" : ""
-            }`}
+            className={`w-full border p-2 rounded ${errors.email ? "border-red-400" : ""}`}
           />
           {errors.email && (
             <p className="text-red-500 text-xs mt-1">{errors.email}</p>
           )}
         </div>
 
-        {/* Password */}
         <div className="mb-4">
           <input
             type="password"
@@ -109,16 +110,13 @@ export default function SignupPage() {
               setErrors((prev) => ({ ...prev, password: undefined }))
             }}
             onKeyDown={handleKeyDown}
-            className={`w-full border p-2 rounded ${
-              errors.password ? "border-red-400" : ""
-            }`}
+            className={`w-full border p-2 rounded ${errors.password ? "border-red-400" : ""}`}
           />
           {errors.password && (
             <p className="text-red-500 text-xs mt-1">{errors.password}</p>
           )}
         </div>
 
-        {/* Confirm password */}
         <div className="mb-6">
           <input
             type="password"
@@ -129,9 +127,7 @@ export default function SignupPage() {
               setErrors((prev) => ({ ...prev, confirm: undefined }))
             }}
             onKeyDown={handleKeyDown}
-            className={`w-full border p-2 rounded ${
-              errors.confirm ? "border-red-400" : ""
-            }`}
+            className={`w-full border p-2 rounded ${errors.confirm ? "border-red-400" : ""}`}
           />
           {errors.confirm && (
             <p className="text-red-500 text-xs mt-1">{errors.confirm}</p>
