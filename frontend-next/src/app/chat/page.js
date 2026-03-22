@@ -17,7 +17,9 @@ export default function ChatPage() {
       content: input
     }
 
-    setMessages(prev => [...prev, userMessage])
+    const updatedMessages = [...messages, userMessage]
+
+    setMessages(updatedMessages)
     setInput("")
     setLoading(true)
 
@@ -30,7 +32,8 @@ export default function ChatPage() {
           "Authorization": `Bearer ${localStorage.getItem("token")}`
         },
         body: JSON.stringify({
-          question: input
+          question: input,
+          history: updatedMessages   // 🔥 MEMORY ADDED
         })
       })
 
@@ -61,7 +64,7 @@ export default function ChatPage() {
 
     <main className="flex flex-col h-screen bg-gray-100">
 
-      {/* Chat Area */}
+      {/* Chat */}
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
 
         {messages.map((msg, index) => (
@@ -85,7 +88,7 @@ export default function ChatPage() {
 
       </div>
 
-      {/* Input Area */}
+      {/* Input */}
       <div className="p-4 bg-white border-t flex gap-2">
 
         <input
