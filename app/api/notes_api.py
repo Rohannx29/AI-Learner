@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, Depends
+from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
 from app.auth.dependencies import get_current_user
 from app.ai_engine.vector_db import store_chunks
 from app.utils.text_chunker import chunk_text
@@ -41,7 +41,7 @@ def extract_text_with_ocr(file_bytes: bytes) -> str:
         return ""
 
 
-@router.post("/upload-notes")
+@router.post("/upload-notes", status_code=200)
 async def upload_notes(
     file: UploadFile = File(...),
     user_id: int = Depends(get_current_user)
@@ -63,11 +63,12 @@ async def upload_notes(
             text = file_bytes.decode("utf-8", errors="ignore")
 
         if not text.strip():
-            return {"error": "Could not extract text from file"}
+            raise HTTPException(
+                status_code=422,
+                detail="Could not extract text from file"
+            )
 
-        # Word-level chunking — preserves token boundaries for better embeddings
         chunks = chunk_text(text)
-
         store_chunks(user_id, chunks, filename=file.filename)
 
         return {
@@ -75,5 +76,7 @@ async def upload_notes(
             "chunks_created": len(chunks)
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))

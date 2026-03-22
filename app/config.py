@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     CORS_ORIGINS: str = "http://localhost:3000"
     ALGORITHM: str = "HS256"
     TOKEN_EXPIRE_HOURS: int = 24
+    POPPLER_PATH: str = ""
+    TESSERACT_PATH: str = ""
 
     @property
     def cors_origins_list(self) -> list[str]:

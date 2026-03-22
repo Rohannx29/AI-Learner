@@ -1,17 +1,13 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from jose import jwt
-from passlib.context import CryptContext
+# DELETE entire file content and replace with:
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from pydantic import BaseModel, EmailStr
+
+from app.db.database import get_db
+from app.db.models import User
+from app.auth.auth_utils import hash_password, verify_password, create_token
 
 router = APIRouter()
-
-SECRET_KEY = "supersecretkey"
-ALGORITHM = "HS256"
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# simple in-memory users
-fake_db = {}
 
 
 class AuthRequest(BaseModel):
@@ -19,32 +15,30 @@ class AuthRequest(BaseModel):
     password: str
 
 
-def hash_password(password):
-    return pwd_context.hash(password[:72])
+@router.post("/signup", status_code=201)
+def signup(request: AuthRequest, db: Session = Depends(get_db)):
+    existing = db.query(User).filter(User.email == request.email).first()
 
+    if existing:
+        raise HTTPException(status_code=409, detail="Email already registered")
 
-def verify_password(password, hashed):
-    return pwd_context.verify(password[:72], hashed)
+    user = User(
+        email=request.email,
+        password=hash_password(request.password)
+    )
+    db.add(user)
+    db.commit()
 
-
-@router.post("/signup")
-def signup(req: AuthRequest):
-    if req.email in fake_db:
-        raise HTTPException(status_code=400, detail="User exists")
-
-    fake_db[req.email] = hash_password(req.password)
-
-    return {"message": "User created"}
+    return {"message": "Account created successfully"}
 
 
 @router.post("/login")
-def login(req: AuthRequest):
-    if req.email not in fake_db:
-        raise HTTPException(status_code=400, detail="Invalid credentials")
+def login(request: AuthRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == request.email).first()
 
-    if not verify_password(req.password, fake_db[req.email]):
-        raise HTTPException(status_code=400, detail="Invalid credentials")
+    if not user or not verify_password(request.password, user.password):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
 
-    token = jwt.encode({"user_id": req.email}, SECRET_KEY, algorithm=ALGORITHM)
+    token = create_token({"user_id": user.id})
 
-    return {"access_token": token}
+    return {"access_token": token, "token_type": "bearer"}
