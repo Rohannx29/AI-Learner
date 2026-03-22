@@ -6,23 +6,40 @@ export default function SignupPage() {
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
 
   const handleSignup = async () => {
 
-    const response = await fetch("http://127.0.0.1:8000/signup", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        email,
-        password
+    try {
+
+      const response = await fetch("http://localhost:8000/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email,
+          password
+        })
       })
-    })
 
-    const data = await response.json()
+      if (!response.ok) {
+        const err = await response.json()
+        throw new Error(err.detail || "Signup failed")
+      }
 
-    console.log(data)
+      const data = await response.json()
+
+      alert("Signup successful!")
+
+      console.log(data)
+
+    } catch (err) {
+
+      console.error(err)
+
+      setError(err.message || "Something went wrong")
+    }
   }
 
   return (
@@ -32,6 +49,10 @@ export default function SignupPage() {
       <div className="bg-white p-10 rounded-lg shadow w-96">
 
         <h2 className="text-2xl font-bold mb-6">Sign Up</h2>
+
+        {error && (
+          <p className="text-red-500 mb-3">{error}</p>
+        )}
 
         <input
           type="email"

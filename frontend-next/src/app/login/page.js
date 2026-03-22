@@ -1,28 +1,50 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
 
+  const router = useRouter()
+
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
 
   const handleLogin = async () => {
 
-    const response = await fetch("http://127.0.0.1:8000/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        email,
-        password
+    try {
+
+      const response = await fetch("http://localhost:8000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email,
+          password
+        })
       })
-    })
 
-    const data = await response.json()
+      if (!response.ok) {
+        const err = await response.json()
+        throw new Error(err.detail || "Login failed")
+      }
 
-    console.log(data)
+      const data = await response.json()
+
+      // 🔐 STORE TOKEN
+      localStorage.setItem("token", data.access_token)
+
+      // ✅ REDIRECT TO DASHBOARD
+      router.push("/dashboard")
+
+    } catch (err) {
+
+      console.error(err)
+      setError(err.message || "Something went wrong")
+
+    }
   }
 
   return (
@@ -32,6 +54,10 @@ export default function LoginPage() {
       <div className="bg-white p-10 rounded-lg shadow w-96">
 
         <h2 className="text-2xl font-bold mb-6">Login</h2>
+
+        {error && (
+          <p className="text-red-500 mb-3">{error}</p>
+        )}
 
         <input
           type="email"

@@ -25,3 +25,6 @@ python-multipart
 sympy
 pix2text
 rank-bm25
+sqlalchemy
+passlib[bcrypt]
+python-jose
