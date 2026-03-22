@@ -1,82 +1,157 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { authApi } from "@/lib/api"
+
+const PASSWORD_MIN_LENGTH = 8
+
+function validate(email, password, confirm) {
+  const errors = {}
+
+  if (!email.trim()) {
+    errors.email = "Email is required"
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    errors.email = "Enter a valid email address"
+  }
+
+  if (!password) {
+    errors.password = "Password is required"
+  } else if (password.length < PASSWORD_MIN_LENGTH) {
+    errors.password = `Password must be at least ${PASSWORD_MIN_LENGTH} characters`
+  }
+
+  if (!confirm) {
+    errors.confirm = "Please confirm your password"
+  } else if (password !== confirm) {
+    errors.confirm = "Passwords do not match"
+  }
+
+  return errors
+}
 
 export default function SignupPage() {
+  const router = useRouter()
 
-  const [email, setEmail] = useState("")
+  const [email, setEmail]       = useState("")
   const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
+  const [confirm, setConfirm]   = useState("")
+  const [errors, setErrors]     = useState({})
+  const [apiError, setApiError] = useState("")
+  const [loading, setLoading]   = useState(false)
 
   const handleSignup = async () => {
+    // Client-side validation first — no API call if invalid
+    const validationErrors = validate(email, password, confirm)
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors)
+      return
+    }
+
+    setErrors({})
+    setApiError("")
+    setLoading(true)
 
     try {
-
-      const response = await fetch("http://localhost:8000/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          email,
-          password
-        })
-      })
-
-      if (!response.ok) {
-        const err = await response.json()
-        throw new Error(err.detail || "Signup failed")
-      }
-
-      const data = await response.json()
-
-      alert("Signup successful!")
-
-      console.log(data)
-
+      await authApi.signup(email.trim().toLowerCase(), password)
+      router.push("/login?registered=true")
     } catch (err) {
-
-      console.error(err)
-
-      setError(err.message || "Something went wrong")
+      setApiError(err.message || "Signup failed")
+    } finally {
+      setLoading(false)
     }
   }
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") handleSignup()
+  }
+
   return (
-
     <main className="flex min-h-screen items-center justify-center bg-gray-100">
-
       <div className="bg-white p-10 rounded-lg shadow w-96">
 
-        <h2 className="text-2xl font-bold mb-6">Sign Up</h2>
+        <h2 className="text-2xl font-bold mb-6">Create account</h2>
 
-        {error && (
-          <p className="text-red-500 mb-3">{error}</p>
+        {apiError && (
+          <p className="text-red-500 text-sm mb-4 p-2 bg-red-50 rounded">
+            {apiError}
+          </p>
         )}
 
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full border p-2 mb-4"
-          onChange={(e)=>setEmail(e.target.value)}
-        />
+        {/* Email */}
+        <div className="mb-4">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value)
+              setErrors((prev) => ({ ...prev, email: undefined }))
+            }}
+            onKeyDown={handleKeyDown}
+            className={`w-full border p-2 rounded ${
+              errors.email ? "border-red-400" : ""
+            }`}
+          />
+          {errors.email && (
+            <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+          )}
+        </div>
 
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full border p-2 mb-4"
-          onChange={(e)=>setPassword(e.target.value)}
-        />
+        {/* Password */}
+        <div className="mb-4">
+          <input
+            type="password"
+            placeholder={`Password (min ${PASSWORD_MIN_LENGTH} characters)`}
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value)
+              setErrors((prev) => ({ ...prev, password: undefined }))
+            }}
+            onKeyDown={handleKeyDown}
+            className={`w-full border p-2 rounded ${
+              errors.password ? "border-red-400" : ""
+            }`}
+          />
+          {errors.password && (
+            <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+          )}
+        </div>
+
+        {/* Confirm password */}
+        <div className="mb-6">
+          <input
+            type="password"
+            placeholder="Confirm password"
+            value={confirm}
+            onChange={(e) => {
+              setConfirm(e.target.value)
+              setErrors((prev) => ({ ...prev, confirm: undefined }))
+            }}
+            onKeyDown={handleKeyDown}
+            className={`w-full border p-2 rounded ${
+              errors.confirm ? "border-red-400" : ""
+            }`}
+          />
+          {errors.confirm && (
+            <p className="text-red-500 text-xs mt-1">{errors.confirm}</p>
+          )}
+        </div>
 
         <button
           onClick={handleSignup}
-          className="w-full bg-black text-white py-2 rounded"
+          disabled={loading}
+          className="w-full bg-black text-white py-2 rounded disabled:opacity-40"
         >
-          Sign Up
+          {loading ? "Creating account..." : "Sign up"}
         </button>
 
-      </div>
+        <p className="text-sm text-center text-gray-500 mt-4">
+          Already have an account?{" "}
+          <a href="/login" className="underline">Log in</a>
+        </p>
 
+      </div>
     </main>
   )
 }

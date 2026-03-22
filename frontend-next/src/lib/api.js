@@ -18,12 +18,16 @@ async function request(path, options = {}) {
     headers,
   })
 
-  // Unified error: surfaces HTTP errors as thrown exceptions
-  // so every caller can catch them the same way
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
-    const message = body.detail || body.error || `HTTP ${res.status}`
-    throw new Error(message)
+
+    // Pydantic 422 returns detail as array: [{ loc, msg, type }]
+    if (Array.isArray(body.detail)) {
+      const message = body.detail.map((e) => e.msg).join(". ")
+      throw new Error(message)
+    }
+
+    throw new Error(body.detail || body.error || `HTTP ${res.status}`)
   }
 
   return res.json()
@@ -61,6 +65,9 @@ export const notesApi = {
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
+      if (Array.isArray(body.detail)) {
+        throw new Error(body.detail.map((e) => e.msg).join(". "))
+      }
       throw new Error(body.detail || body.error || `HTTP ${res.status}`)
     }
 

@@ -1,15 +1,18 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { authApi } from "@/lib/api"
 
 export default function LoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState("")
+  const searchParams = useSearchParams()
+  const registered = searchParams.get("registered")
+
+  const [email, setEmail]       = useState("")
   const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [error, setError]       = useState("")
+  const [loading, setLoading]   = useState(false)
 
   const handleLogin = async () => {
     if (!email || !password) return
@@ -35,9 +38,18 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-100">
       <div className="bg-white p-10 rounded-lg shadow w-96">
+
         <h2 className="text-2xl font-bold mb-6">Login</h2>
 
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+        {registered && (
+          <p className="text-green-600 text-sm mb-4 p-2 bg-green-50 rounded">
+            Account created — please log in.
+          </p>
+        )}
+
+        {error && (
+          <p className="text-red-500 text-sm mb-4">{error}</p>
+        )}
 
         <input
           type="email"
@@ -66,6 +78,7 @@ export default function LoginPage() {
           No account?{" "}
           <a href="/signup" className="underline">Sign up</a>
         </p>
+
       </div>
     </main>
   )
