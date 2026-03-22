@@ -1,14 +1,11 @@
-import ollama
+from ollama import Client
 from typing import List, Dict
+from app.config import settings
 
 
 def tutor_chat(question: str, history: List[Dict] = []) -> str:
-    """
-    history is passed in per-request from the API layer.
-    No global state — each call is fully isolated.
-    """
-    messages = list(history)  # copy, never mutate caller's list
+    client = Client(host=settings.OLLAMA_HOST)
+    messages = list(history)
     messages.append({"role": "user", "content": question})
-
-    response = ollama.chat(model="llama3", messages=messages)
+    response = client.chat(model="llama3", messages=messages)
     return response["message"]["content"]

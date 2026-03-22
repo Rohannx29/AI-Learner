@@ -1,4 +1,5 @@
-import ollama
+from ollama import Client
+from app.config import settings
 
 
 def generate_roadmap(topic: str, duration: str) -> str:
@@ -9,7 +10,8 @@ Duration: {duration}
 
 Provide a clear weekly roadmap with topics and small learning objectives.
 """
-    response = ollama.chat(
+    client = Client(host=settings.OLLAMA_HOST)
+    response = client.chat(
         model="llama3",
         messages=[{"role": "user", "content": prompt}]
     )
