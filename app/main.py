@@ -10,6 +10,7 @@ from app.api import tutor_api
 
 from app.db.database import engine
 from app.db.models import Base
+from app.config import settings
 
 Base.metadata.create_all(bind=engine)
 
@@ -17,7 +18,7 @@ app = FastAPI(title="AI Learner API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

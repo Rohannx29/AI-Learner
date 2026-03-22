@@ -2,17 +2,22 @@ from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError
 
-SECRET_KEY = "supersecretkey"
-ALGORITHM = "HS256"
+from app.config import settings
 
 security = HTTPBearer()
 
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+) -> int:
     token = credentials.credentials
 
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM]
+        )
         user_id = payload.get("user_id")
 
         if user_id is None:
