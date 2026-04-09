@@ -9,10 +9,10 @@ export default function LoginPage() {
   const searchParams = useSearchParams()
   const registered = searchParams.get("registered")
 
-  const [email, setEmail]       = useState("")
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [error, setError]       = useState("")
-  const [loading, setLoading]   = useState(false)
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
 
   const handleLogin = async () => {
     if (!email || !password) return
@@ -36,47 +36,92 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-100">
-      <div className="bg-white p-10 rounded-lg shadow w-96">
+    <main className="flex min-h-screen items-center justify-center bg-[#0f172a] text-white">
 
-        <h2 className="text-2xl font-bold mb-6">Login</h2>
+      {/* BACKGROUND GLOW */}
+      <div className="absolute w-[400px] h-[400px] bg-purple-600/20 blur-[120px] rounded-full top-10 left-10" />
+      <div className="absolute w-[300px] h-[300px] bg-cyan-500/20 blur-[120px] rounded-full bottom-10 right-10" />
 
+      {/* CARD */}
+      <div className="relative z-10 w-full max-w-md p-8 rounded-2xl 
+        bg-[#020617]/70 backdrop-blur-xl border border-[#1e293b] shadow-xl">
+
+        {/* TITLE */}
+        <h2 className="text-2xl font-semibold mb-2">
+          Welcome back
+        </h2>
+        <p className="text-sm text-gray-400 mb-6">
+          Login to continue your learning journey
+        </p>
+
+        {/* SUCCESS MESSAGE */}
         {registered && (
-          <p className="text-green-600 text-sm mb-4 p-2 bg-green-50 rounded">
+          <div className="mb-4 px-3 py-2 rounded-lg 
+            bg-green-500/10 border border-green-500/20 text-green-400 text-sm">
             Account created — please log in.
-          </p>
+          </div>
         )}
 
+        {/* ERROR */}
         {error && (
-          <p className="text-red-500 text-sm mb-4">{error}</p>
+          <div className="mb-4 px-3 py-2 rounded-lg 
+            bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+            {error}
+          </div>
         )}
 
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full border p-2 mb-4 rounded"
-          onChange={(e) => setEmail(e.target.value)}
-          onKeyDown={handleKeyDown}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full border p-2 mb-6 rounded"
-          onChange={(e) => setPassword(e.target.value)}
-          onKeyDown={handleKeyDown}
-        />
+        {/* INPUTS */}
+        <div className="space-y-4">
 
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="w-full px-4 py-3 rounded-xl 
+            bg-[#020617] border border-[#334155] 
+            text-white placeholder-gray-400
+            focus:outline-none focus:ring-2 focus:ring-purple-500 
+            transition-all"
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="w-full px-4 py-3 rounded-xl 
+            bg-[#020617] border border-[#334155] 
+            text-white placeholder-gray-400
+            focus:outline-none focus:ring-2 focus:ring-purple-500 
+            transition-all"
+          />
+
+        </div>
+
+        {/* BUTTON */}
         <button
           onClick={handleLogin}
           disabled={loading}
-          className="w-full bg-black text-white py-2 rounded disabled:opacity-40"
+          className="w-full mt-6 py-3 rounded-xl font-medium
+          bg-gradient-to-r from-purple-600 to-cyan-500
+          hover:scale-105 hover:shadow-lg active:scale-95
+          disabled:opacity-40 transition-all"
         >
           {loading ? "Logging in..." : "Login"}
         </button>
 
-        <p className="text-sm text-center text-gray-500 mt-4">
-          No account?{" "}
-          <a href="/signup" className="underline">Sign up</a>
+        {/* FOOTER */}
+        <p className="text-sm text-center text-gray-400 mt-6">
+          Don’t have an account?{" "}
+          <span
+            onClick={() => router.push("/signup")}
+            className="text-purple-400 hover:underline cursor-pointer"
+          >
+            Sign up
+          </span>
         </p>
 
       </div>

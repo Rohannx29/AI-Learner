@@ -18,7 +18,7 @@ function validate(email, password, confirm) {
   if (!password) {
     errors.password = "Password is required"
   } else if (password.length < PASSWORD_MIN_LENGTH) {
-    errors.password = `Password must be at least ${PASSWORD_MIN_LENGTH} characters`
+    errors.password = `Minimum ${PASSWORD_MIN_LENGTH} characters required`
   }
 
   if (!confirm) {
@@ -33,15 +33,16 @@ function validate(email, password, confirm) {
 export default function SignupPage() {
   const router = useRouter()
 
-  const [email, setEmail]       = useState("")
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [confirm, setConfirm]   = useState("")
-  const [errors, setErrors]     = useState({})
+  const [confirm, setConfirm] = useState("")
+  const [errors, setErrors] = useState({})
   const [apiError, setApiError] = useState("")
-  const [loading, setLoading]   = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const handleSignup = async () => {
     const validationErrors = validate(email, password, confirm)
+
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
       return
@@ -56,9 +57,10 @@ export default function SignupPage() {
 
       await authApi.signup(normalizedEmail, password)
 
-      // Auto-login immediately after signup
+      // auto login
       const data = await authApi.login(normalizedEmail, password)
       localStorage.setItem("token", data.access_token)
+
       router.push("/dashboard")
     } catch (err) {
       setApiError(err.message || "Signup failed")
@@ -72,79 +74,124 @@ export default function SignupPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-100">
-      <div className="bg-white p-10 rounded-lg shadow w-96">
+    <main className="flex min-h-screen items-center justify-center bg-[#0f172a] text-white">
 
-        <h2 className="text-2xl font-bold mb-6">Create account</h2>
+      {/* BACKGROUND GLOW */}
+      <div className="absolute w-[400px] h-[400px] bg-purple-600/20 blur-[120px] rounded-full top-10 left-10" />
+      <div className="absolute w-[300px] h-[300px] bg-cyan-500/20 blur-[120px] rounded-full bottom-10 right-10" />
 
+      {/* CARD */}
+      <div className="relative z-10 w-full max-w-md p-8 rounded-2xl 
+        bg-[#020617]/70 backdrop-blur-xl border border-[#1e293b] shadow-xl">
+
+        {/* TITLE */}
+        <h2 className="text-2xl font-semibold mb-2">
+          Create account
+        </h2>
+        <p className="text-sm text-gray-400 mb-6">
+          Start your AI-powered learning journey
+        </p>
+
+        {/* API ERROR */}
         {apiError && (
-          <p className="text-red-500 text-sm mb-4 p-2 bg-red-50 rounded">
+          <div className="mb-4 px-3 py-2 rounded-lg 
+            bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
             {apiError}
-          </p>
+          </div>
         )}
 
-        <div className="mb-4">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value)
-              setErrors((prev) => ({ ...prev, email: undefined }))
-            }}
-            onKeyDown={handleKeyDown}
-            className={`w-full border p-2 rounded ${errors.email ? "border-red-400" : ""}`}
-          />
-          {errors.email && (
-            <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-          )}
+        {/* INPUTS */}
+        <div className="space-y-4">
+
+          {/* EMAIL */}
+          <div>
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value)
+                setErrors((prev) => ({ ...prev, email: undefined }))
+              }}
+              onKeyDown={handleKeyDown}
+              className={`w-full px-4 py-3 rounded-xl 
+              bg-[#020617] border 
+              ${errors.email ? "border-red-500" : "border-[#334155]"}
+              text-white placeholder-gray-400
+              focus:outline-none focus:ring-2 focus:ring-purple-500`}
+            />
+            {errors.email && (
+              <p className="text-red-400 text-xs mt-1">{errors.email}</p>
+            )}
+          </div>
+
+          {/* PASSWORD */}
+          <div>
+            <input
+              type="password"
+              placeholder={`Password (min ${PASSWORD_MIN_LENGTH})`}
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value)
+                setErrors((prev) => ({ ...prev, password: undefined }))
+              }}
+              onKeyDown={handleKeyDown}
+              className={`w-full px-4 py-3 rounded-xl 
+              bg-[#020617] border 
+              ${errors.password ? "border-red-500" : "border-[#334155]"}
+              text-white placeholder-gray-400
+              focus:outline-none focus:ring-2 focus:ring-purple-500`}
+            />
+            {errors.password && (
+              <p className="text-red-400 text-xs mt-1">{errors.password}</p>
+            )}
+          </div>
+
+          {/* CONFIRM */}
+          <div>
+            <input
+              type="password"
+              placeholder="Confirm password"
+              value={confirm}
+              onChange={(e) => {
+                setConfirm(e.target.value)
+                setErrors((prev) => ({ ...prev, confirm: undefined }))
+              }}
+              onKeyDown={handleKeyDown}
+              className={`w-full px-4 py-3 rounded-xl 
+              bg-[#020617] border 
+              ${errors.confirm ? "border-red-500" : "border-[#334155]"}
+              text-white placeholder-gray-400
+              focus:outline-none focus:ring-2 focus:ring-purple-500`}
+            />
+            {errors.confirm && (
+              <p className="text-red-400 text-xs mt-1">{errors.confirm}</p>
+            )}
+          </div>
+
         </div>
 
-        <div className="mb-4">
-          <input
-            type="password"
-            placeholder={`Password (min ${PASSWORD_MIN_LENGTH} characters)`}
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value)
-              setErrors((prev) => ({ ...prev, password: undefined }))
-            }}
-            onKeyDown={handleKeyDown}
-            className={`w-full border p-2 rounded ${errors.password ? "border-red-400" : ""}`}
-          />
-          {errors.password && (
-            <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-          )}
-        </div>
-
-        <div className="mb-6">
-          <input
-            type="password"
-            placeholder="Confirm password"
-            value={confirm}
-            onChange={(e) => {
-              setConfirm(e.target.value)
-              setErrors((prev) => ({ ...prev, confirm: undefined }))
-            }}
-            onKeyDown={handleKeyDown}
-            className={`w-full border p-2 rounded ${errors.confirm ? "border-red-400" : ""}`}
-          />
-          {errors.confirm && (
-            <p className="text-red-500 text-xs mt-1">{errors.confirm}</p>
-          )}
-        </div>
-
+        {/* BUTTON */}
         <button
           onClick={handleSignup}
           disabled={loading}
-          className="w-full bg-black text-white py-2 rounded disabled:opacity-40"
+          className="w-full mt-6 py-3 rounded-xl font-medium
+          bg-gradient-to-r from-purple-600 to-cyan-500
+          hover:scale-105 hover:shadow-lg active:scale-95
+          disabled:opacity-40 transition-all"
         >
           {loading ? "Creating account..." : "Sign up"}
         </button>
 
-        <p className="text-sm text-center text-gray-500 mt-4">
+        {/* FOOTER */}
+        <p className="text-sm text-center text-gray-400 mt-6">
           Already have an account?{" "}
-          <a href="/login" className="underline">Log in</a>
+          <span
+            onClick={() => router.push("/login")}
+            className="text-purple-400 hover:underline cursor-pointer"
+          >
+            Log in
+          </span>
         </p>
 
       </div>
