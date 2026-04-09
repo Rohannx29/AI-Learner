@@ -1,13 +1,14 @@
 "use client"
 
+import { Suspense } from "react"
 import { useState } from "react"
 import { notesApi } from "@/lib/api"
 import { useAuth } from "@/hooks/useAuth"
 
-export default function NotesPage() {
+function NotesPageContent() {
   const { ready } = useAuth()
   const [file, setFile] = useState(null)
-  const [status, setStatus] = useState(null)   // { ok: bool, message: string }
+  const [status, setStatus] = useState(null)
   const [loading, setLoading] = useState(false)
 
   const uploadFile = async () => {
@@ -33,28 +34,50 @@ export default function NotesPage() {
 
   return (
     <div className="p-10">
-      <h1 className="text-3xl font-bold mb-6">Upload Notes</h1>
 
-      <input
-        type="file"
-        accept=".pdf,.txt,.docx"
-        onChange={(e) => setFile(e.target.files[0])}
-        className="mb-4 block"
-      />
+      <h1 className="text-3xl font-bold mb-2">Upload Notes</h1>
+      <p className="text-gray-500 text-sm mb-8">
+        Supported formats: PDF, DOCX, TXT
+      </p>
 
-      <button
-        onClick={uploadFile}
-        disabled={!file || loading}
-        className="bg-black text-white px-4 py-2 rounded disabled:opacity-40"
-      >
-        {loading ? "Uploading..." : "Upload"}
-      </button>
+      <div className="bg-white p-6 rounded-lg shadow-sm max-w-md">
 
-      {status && (
-        <p className={`mt-4 text-sm ${status.ok ? "text-green-600" : "text-red-500"}`}>
-          {status.message}
-        </p>
-      )}
+        <input
+          type="file"
+          accept=".pdf,.txt,.docx"
+          onChange={(e) => {
+            setFile(e.target.files[0])
+            setStatus(null)
+          }}
+          className="block mb-6 text-sm"
+        />
+
+        <button
+          onClick={uploadFile}
+          disabled={!file || loading}
+          className="w-full bg-black text-white py-2 rounded disabled:opacity-40"
+        >
+          {loading ? "Uploading..." : "Upload"}
+        </button>
+
+        {status && (
+          <p className={`mt-4 text-sm ${
+            status.ok ? "text-green-600" : "text-red-500"
+          }`}>
+            {status.message}
+          </p>
+        )}
+
+      </div>
+
     </div>
+  )
+}
+
+export default function NotesPage() {
+  return (
+    <Suspense>
+      <NotesPageContent />
+    </Suspense>
   )
 }

@@ -1,10 +1,11 @@
 "use client"
 
+import { Suspense } from "react"
 import { useState } from "react"
 import { roadmapApi } from "@/lib/api"
 import { useAuth } from "@/hooks/useAuth"
 
-export default function RoadmapPage() {
+function RoadmapPageContent() {
   const { ready } = useAuth()
   const [topic, setTopic] = useState("")
   const [duration, setDuration] = useState("4 weeks")
@@ -37,20 +38,24 @@ export default function RoadmapPage() {
 
   return (
     <div className="p-10">
-      <h1 className="text-3xl font-bold mb-6">Roadmap Generator</h1>
 
-      <div className="flex gap-2 mb-4 flex-wrap">
+      <h1 className="text-3xl font-bold mb-2">Roadmap Generator</h1>
+      <p className="text-gray-500 text-sm mb-8">
+        Generate a structured weekly learning plan for any topic
+      </p>
+
+      <div className="flex gap-2 mb-6 flex-wrap">
         <input
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Topic (e.g. AI, DSA, Web Dev)"
-          className="border p-2 w-80 rounded"
+          className="border p-2 w-80 rounded text-sm"
         />
         <select
           value={duration}
           onChange={(e) => setDuration(e.target.value)}
-          className="border p-2 rounded bg-white"
+          className="border p-2 rounded bg-white text-sm"
         >
           <option>1 week</option>
           <option>2 weeks</option>
@@ -62,7 +67,7 @@ export default function RoadmapPage() {
         <button
           onClick={generateRoadmap}
           disabled={!topic.trim() || loading}
-          className="bg-black text-white px-4 py-2 rounded disabled:opacity-40"
+          className="bg-black text-white px-4 py-2 rounded disabled:opacity-40 text-sm"
         >
           {loading ? "Generating..." : "Generate"}
         </button>
@@ -73,10 +78,19 @@ export default function RoadmapPage() {
       )}
 
       {result && (
-        <pre className="whitespace-pre-wrap bg-white p-4 rounded shadow text-sm leading-relaxed">
+        <pre className="whitespace-pre-wrap bg-white p-6 rounded-lg shadow-sm text-sm leading-relaxed max-w-3xl">
           {result}
         </pre>
       )}
+
     </div>
+  )
+}
+
+export default function RoadmapPage() {
+  return (
+    <Suspense>
+      <RoadmapPageContent />
+    </Suspense>
   )
 }

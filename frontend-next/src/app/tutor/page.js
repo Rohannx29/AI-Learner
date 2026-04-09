@@ -1,10 +1,11 @@
 "use client"
 
+import { Suspense } from "react"
 import { useState } from "react"
 import { tutorApi } from "@/lib/api"
 import { useAuth } from "@/hooks/useAuth"
 
-export default function TutorPage() {
+function TutorPageContent() {
   const { ready } = useAuth()
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState("")
@@ -23,7 +24,6 @@ export default function TutorPage() {
     setError("")
 
     try {
-      // Pass full history so tutor maintains conversation context
       const data = await tutorApi.ask(input, updatedMessages)
       setMessages(prev => [
         ...prev,
@@ -57,7 +57,6 @@ export default function TutorPage() {
   return (
     <main className="flex flex-col h-screen bg-gray-100">
 
-      {/* Header */}
       <div className="bg-white border-b px-6 py-3 flex items-center justify-between">
         <div>
           <h1 className="font-semibold">AI Tutor</h1>
@@ -75,14 +74,13 @@ export default function TutorPage() {
         )}
       </div>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
 
         {messages.length === 0 && (
           <div className="text-center text-gray-400 mt-20">
             <p className="text-lg mb-2">Ask me anything</p>
             <p className="text-sm">
-              Unlike the Notes Chat, the Tutor answers from general knowledge.
+              Unlike Notes Chat, the Tutor answers from general knowledge.
             </p>
           </div>
         )}
@@ -110,7 +108,6 @@ export default function TutorPage() {
 
       </div>
 
-      {/* Input */}
       <div className="p-4 bg-white border-t flex gap-2">
         <input
           value={input}
@@ -130,5 +127,13 @@ export default function TutorPage() {
       </div>
 
     </main>
+  )
+}
+
+export default function TutorPage() {
+  return (
+    <Suspense>
+      <TutorPageContent />
+    </Suspense>
   )
 }
