@@ -22,7 +22,7 @@ function RoadmapPageContent() {
 
     try {
       const data = await roadmapApi.generate(topic, duration)
-      setResult(data.roadmap || "No roadmap generated.")
+      setResult(data.roadmap || "")
     } catch (err) {
       setError(err.message)
     } finally {
@@ -32,6 +32,31 @@ function RoadmapPageContent() {
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") generateRoadmap()
+  }
+
+  // 🔥 PARSER FUNCTION (IMPORTANT)
+  const parseRoadmap = (text) => {
+    const lines = text.split("\n").filter(line => line.trim() !== "")
+
+    let structured = []
+    let currentMonth = null
+    let currentWeek = null
+
+    lines.forEach(line => {
+      if (line.toLowerCase().includes("month")) {
+        currentMonth = { title: line, weeks: [] }
+        structured.push(currentMonth)
+      } 
+      else if (line.toLowerCase().includes("week")) {
+        currentWeek = { title: line, topics: [] }
+        currentMonth?.weeks.push(currentWeek)
+      } 
+      else {
+        currentWeek?.topics.push(line)
+      }
+    })
+
+    return structured
   }
 
   if (!ready) return null
@@ -47,12 +72,10 @@ function RoadmapPageContent() {
         </p>
       </div>
 
-      {/* FORM CARD */}
-      <div className="bg-[#1e293b] border border-[#334155] rounded-2xl p-6 mb-8 max-w-3xl shadow-lg">
-
+      {/* FORM */}
+      <div className="bg-[#1e293b] border border-[#334155] rounded-2xl p-6 mb-10 max-w-3xl shadow-lg">
         <div className="flex flex-col md:flex-row gap-4">
 
-          {/* INPUT */}
           <input
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
@@ -64,7 +87,6 @@ function RoadmapPageContent() {
             focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
 
-          {/* SELECT */}
           <select
             value={duration}
             onChange={(e) => setDuration(e.target.value)}
@@ -80,7 +102,6 @@ function RoadmapPageContent() {
             <option>6 months</option>
           </select>
 
-          {/* BUTTON */}
           <button
             onClick={generateRoadmap}
             disabled={!topic.trim() || loading}
@@ -93,33 +114,55 @@ function RoadmapPageContent() {
           </button>
 
         </div>
-
       </div>
 
       {/* ERROR */}
       {error && (
         <div className="mb-6 px-4 py-3 rounded-lg 
-          bg-red-500/10 border border-red-500/20 text-red-400 text-sm max-w-3xl">
+        bg-red-500/10 border border-red-500/20 text-red-400 text-sm max-w-3xl">
           {error}
         </div>
       )}
 
       {/* RESULT */}
       {result && (
-        <div className="max-w-4xl space-y-4">
+        <div className="max-w-4xl space-y-6">
 
-          {/* TITLE */}
-          <h2 className="text-xl font-semibold mb-2">
-            Generated Roadmap
-          </h2>
+          <h2 className="text-xl font-semibold">Generated Roadmap</h2>
 
-          {/* PARSED CONTENT */}
-          {result.split("\n").map((line, index) => (
+          {parseRoadmap(result).map((month, i) => (
             <div
-              key={index}
-              className="bg-[#1e293b] border border-[#334155] rounded-xl p-4 text-sm text-gray-200"
+              key={i}
+              className="bg-[#1e293b] border border-[#334155] rounded-2xl p-5"
             >
-              {line}
+              {/* MONTH */}
+              <h3 className="text-lg font-semibold mb-4 text-purple-400">
+                {month.title}
+              </h3>
+
+              {month.weeks.map((week, j) => (
+                <div key={j} className="mb-4 ml-2">
+
+                  {/* WEEK */}
+                  <h4 className="text-sm font-medium text-cyan-400 mb-2">
+                    {week.title}
+                  </h4>
+
+                  {/* TOPICS */}
+                  <ul className="space-y-2 ml-4">
+                    {week.topics.map((topic, k) => (
+                      <li
+                        key={k}
+                        className="text-sm text-gray-300 bg-[#020617] px-3 py-2 rounded-lg border border-[#334155]"
+                      >
+                        {topic}
+                      </li>
+                    ))}
+                  </ul>
+
+                </div>
+              ))}
+
             </div>
           ))}
 
