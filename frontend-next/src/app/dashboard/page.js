@@ -1,5 +1,6 @@
 "use client"
 
+import { Suspense } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 
@@ -24,14 +25,13 @@ const FEATURES = [
   },
 ]
 
-export default function Dashboard() {
+function DashboardContent() {
   const { ready } = useAuth()
   const router = useRouter()
 
   if (!ready) return null
 
   return (
-    // Fix: h-full overflow-y-auto — scrollable content page
     <div className="h-full overflow-y-auto bg-[#0f172a] text-white">
       <div className="p-8">
 
@@ -40,32 +40,32 @@ export default function Dashboard() {
           <p className="text-gray-400">What do you want to do today?</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6
-          max-w-4xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-4xl">
           {FEATURES.map((f) => (
             <div
               key={f.route}
               onClick={() => router.push(f.route)}
-              className="cursor-pointer p-6 rounded-2xl
-                bg-[#1e293b] border border-[#334155]
-                hover:scale-[1.03] hover:shadow-xl
-                transition-all duration-300 group"
+              className="cursor-pointer p-6 rounded-2xl bg-[#1e293b] border border-[#334155] hover:scale-[1.03] hover:shadow-xl transition-all duration-300 group"
             >
-              <div className="text-3xl mb-4
-                group-hover:scale-110 transition-transform">
+              <div className="text-3xl mb-4 group-hover:scale-110 transition-transform">
                 {f.icon}
               </div>
               <h2 className="text-lg font-semibold mb-2">{f.label}</h2>
               <p className="text-sm text-gray-400">{f.description}</p>
-              <div className="mt-4 h-0.5 w-0
-                bg-gradient-to-r from-purple-500 to-cyan-500
-                group-hover:w-full transition-all duration-300 rounded-full"
-              />
+              <div className="mt-4 h-0.5 w-0 bg-gradient-to-r from-purple-500 to-cyan-500 group-hover:w-full transition-all duration-300 rounded-full" />
             </div>
           ))}
         </div>
 
       </div>
     </div>
+  )
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense>
+      <DashboardContent />
+    </Suspense>
   )
 }
